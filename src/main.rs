@@ -1,56 +1,14 @@
 use macroquad::prelude::*;
+use std::{thread, time};
 
-trait Renderable {
-    fn render(&self);
-}
+mod player;
 
-trait Input {
-    fn process_input(&mut self);
-}
+use crate::{player::{Player, Renderable, Input}};
 
 pub struct Game
 {
     screen_width: f32,
     screen_height: f32,
-}
-
-struct Player
-{
-    health: f32,
-    pos: Vec2,
-    radius: f32,
-}
-
-impl Player {
-    fn new(pos: Vec2, radius: f32) -> Self {
-        Self { health: 100.0, pos: pos, radius: radius }
-    }
-}
-
-impl Renderable for Player {
-    fn render(&self) {
-        draw_circle(self.pos.x, self.pos.y, self.radius, YELLOW);
-    }
-}
-
-impl Input for Player {
-    fn process_input(&mut self) {
-        if is_key_down(KeyCode::W) {
-            self.pos.y -= 5.0;
-          }
-
-        if is_key_down(KeyCode::A) {
-            self.pos.x -= 5.0;
-        }
-
-        if is_key_down(KeyCode::S) {
-            self.pos.y += 5.0;
-        }
-
-        if is_key_down(KeyCode::D) {
-            self.pos.x += 5.0;
-        }
-    }
 }
 
 fn game_update_and_render(player: &mut Player, enemy: &Player) {
@@ -77,7 +35,7 @@ async fn main()
     // Allocate game struct
     let game: Game = Game {
         screen_width: config.window_width as f32,
-        screen_height: config.window_height as f32 };
+        screen_height: config.window_height as f32, };
 
     let middle: Vec2 = Vec2::new(game.screen_width / 2.0, game.screen_height / 2.0);
 
@@ -87,10 +45,15 @@ async fn main()
     loop {
         clear_background(BLACK);
 
-        draw_text("Bitch ass retard", 20.0, 20.0, 20.0, RED);
+        // Render fps
+        let fps: &str = &get_fps().to_string();
+        draw_text(fps, 20.0, 20.0, 20.0, RED);
 
         game_update_and_render(&mut player, &enemy);
 
+        // Using standard library function for now, but I should replace
+        // this later with a smoother alternative.
+        thread::sleep(time::Duration::from_millis(15));
         next_frame().await;
     }
 }
